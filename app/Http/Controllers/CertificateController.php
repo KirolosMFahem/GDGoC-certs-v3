@@ -18,7 +18,7 @@ class CertificateController extends Controller
     {
         $userCertTemplates = auth()->user()->certificateTemplates;
         $globalCertTemplates = CertificateTemplate::where('is_global', true)->get();
-        
+
         $userEmailTemplates = auth()->user()->emailTemplates;
         $globalEmailTemplates = EmailTemplate::where('is_global', true)->get();
 
@@ -47,13 +47,13 @@ class CertificateController extends Controller
 
         // Verify the certificate template is accessible (global or owned by user)
         $certTemplate = CertificateTemplate::findOrFail($validated['certificate_template_id']);
-        if (!$certTemplate->is_global && $certTemplate->user_id !== auth()->id()) {
+        if (! $certTemplate->is_global && $certTemplate->user_id !== auth()->id()) {
             abort(403, 'Unauthorized access to certificate template.');
         }
 
         // Verify the email template is accessible (global or owned by user)
         $emailTemplate = EmailTemplate::findOrFail($validated['email_template_id']);
-        if (!$emailTemplate->is_global && $emailTemplate->user_id !== auth()->id()) {
+        if (! $emailTemplate->is_global && $emailTemplate->user_id !== auth()->id()) {
             abort(403, 'Unauthorized access to email template.');
         }
 

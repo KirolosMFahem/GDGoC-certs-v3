@@ -114,7 +114,7 @@ class EmailTemplateController extends Controller
         $cloned->user_id = auth()->id();
         $cloned->is_global = false;
         $cloned->original_template_id = $emailTemplate->id;
-        $cloned->name = $emailTemplate->name . ' (Copy)';
+        $cloned->name = $emailTemplate->name.' (Copy)';
         $cloned->save();
 
         return redirect()->route('dashboard.templates.email.index')
@@ -129,14 +129,14 @@ class EmailTemplateController extends Controller
         Gate::authorize('reset', $emailTemplate);
         Gate::authorize('update', $emailTemplate);
 
-        if (!$emailTemplate->original_template_id) {
+        if (! $emailTemplate->original_template_id) {
             return redirect()->route('dashboard.templates.email.index')
                 ->with('error', 'This template cannot be reset as it was not cloned from a global template.');
         }
 
         $original = EmailTemplate::find($emailTemplate->original_template_id);
 
-        if (!$original) {
+        if (! $original) {
             return redirect()->route('dashboard.templates.email.index')
                 ->with('error', 'The original template no longer exists.');
         }

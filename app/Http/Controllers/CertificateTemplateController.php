@@ -115,7 +115,7 @@ class CertificateTemplateController extends Controller
         $cloned->user_id = auth()->id();
         $cloned->is_global = false;
         $cloned->original_template_id = $certificateTemplate->id;
-        $cloned->name = $certificateTemplate->name . ' (Copy)';
+        $cloned->name = $certificateTemplate->name.' (Copy)';
         $cloned->save();
 
         return redirect()->route('dashboard.templates.certificates.index')
@@ -130,14 +130,14 @@ class CertificateTemplateController extends Controller
         Gate::authorize('reset', $certificateTemplate);
         Gate::authorize('update', $certificateTemplate);
 
-        if (!$certificateTemplate->original_template_id) {
+        if (! $certificateTemplate->original_template_id) {
             return redirect()->route('dashboard.templates.certificates.index')
                 ->with('error', 'This template cannot be reset as it was not cloned from a global template.');
         }
 
         $original = CertificateTemplate::find($certificateTemplate->original_template_id);
 
-        if (!$original) {
+        if (! $original) {
             return redirect()->route('dashboard.templates.certificates.index')
                 ->with('error', 'The original template no longer exists.');
         }
