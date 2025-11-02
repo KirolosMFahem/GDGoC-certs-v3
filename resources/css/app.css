@@ -1,3 +1,93 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Documentation Content Styles */
+.documentation-content {
+    @apply text-gray-800;
+}
+
+.documentation-content h1 {
+    @apply text-3xl font-bold mt-6 mb-4;
+}
+
+.documentation-content h2 {
+    @apply text-2xl font-bold mt-5 mb-3;
+}
+
+.documentation-content h3 {
+    @apply text-xl font-bold mt-4 mb-2;
+}
+
+.documentation-content h4 {
+    @apply text-lg font-semibold mt-3 mb-2;
+}
+
+.documentation-content p {
+    @apply mb-4 leading-relaxed;
+}
+
+.documentation-content ul,
+.documentation-content ol {
+    @apply mb-4 ml-6;
+}
+
+.documentation-content ul {
+    @apply list-disc;
+}
+
+.documentation-content ol {
+    @apply list-decimal;
+}
+
+.documentation-content li {
+    @apply mb-2;
+}
+
+.documentation-content a {
+    @apply text-blue-600 hover:text-blue-800 underline;
+}
+
+.documentation-content code {
+    @apply bg-gray-100 px-2 py-1 rounded text-sm font-mono text-red-600;
+}
+
+.documentation-content pre {
+    @apply bg-gray-900 text-gray-100 p-4 rounded-lg mb-4 overflow-x-auto;
+}
+
+.documentation-content pre code {
+    @apply bg-transparent text-gray-100 p-0;
+}
+
+.documentation-content blockquote {
+    @apply border-l-4 border-gray-300 pl-4 italic my-4 text-gray-600;
+}
+
+.documentation-content table {
+    @apply w-full mb-4 border-collapse;
+}
+
+.documentation-content th,
+.documentation-content td {
+    @apply border border-gray-300 px-4 py-2;
+}
+
+.documentation-content th {
+    @apply bg-gray-100 font-semibold;
+}
+
+.documentation-content strong,
+.documentation-content b {
+    @apply font-bold;
+}
+
+.documentation-content em,
+.documentation-content i {
+    @apply italic;
+}
+
+.documentation-content hr {
+    @apply my-6 border-t border-gray-300;
+}
+
