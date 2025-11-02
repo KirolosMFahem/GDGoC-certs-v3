@@ -39,13 +39,21 @@ class DocumentationController extends Controller
         ]);
 
         $slug = Str::slug($validated['title']);
-        $originalSlug = $slug;
-        $counter = 1;
-
-        // Ensure unique slug
-        while (DocumentationPage::where('slug', $slug)->exists()) {
-            $slug = $originalSlug.'-'.$counter;
-            $counter++;
+        
+        // Check if slug exists and find the highest counter if needed
+        $existingSlugs = DocumentationPage::where('slug', 'like', $slug.'%')
+            ->pluck('slug')
+            ->toArray();
+        
+        if (in_array($slug, $existingSlugs)) {
+            // Find the highest counter value
+            $maxCounter = 0;
+            foreach ($existingSlugs as $existingSlug) {
+                if (preg_match('/^'.preg_quote($slug, '/').'-(\d+)$/', $existingSlug, $matches)) {
+                    $maxCounter = max($maxCounter, (int) $matches[1]);
+                }
+            }
+            $slug = $slug.'-'.($maxCounter + 1);
         }
 
         $validated['slug'] = $slug;
@@ -84,13 +92,22 @@ class DocumentationController extends Controller
         ]);
 
         $slug = Str::slug($validated['title']);
-        $originalSlug = $slug;
-        $counter = 1;
-
-        // Ensure unique slug (excluding current page)
-        while (DocumentationPage::where('slug', $slug)->where('id', '!=', $documentation->id)->exists()) {
-            $slug = $originalSlug.'-'.$counter;
-            $counter++;
+        
+        // Check if slug exists and find the highest counter if needed (excluding current page)
+        $existingSlugs = DocumentationPage::where('id', '!=', $documentation->id)
+            ->where('slug', 'like', $slug.'%')
+            ->pluck('slug')
+            ->toArray();
+        
+        if (in_array($slug, $existingSlugs)) {
+            // Find the highest counter value
+            $maxCounter = 0;
+            foreach ($existingSlugs as $existingSlug) {
+                if (preg_match('/^'.preg_quote($slug, '/').'-(\d+)$/', $existingSlug, $matches)) {
+                    $maxCounter = max($maxCounter, (int) $matches[1]);
+                }
+            }
+            $slug = $slug.'-'.($maxCounter + 1);
         }
 
         $validated['slug'] = $slug;
