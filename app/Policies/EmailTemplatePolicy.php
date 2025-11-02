@@ -52,7 +52,7 @@ class EmailTemplatePolicy
      */
     public function clone(User $user, EmailTemplate $emailTemplate): bool
     {
-        return true;
+        return $emailTemplate->is_global || $user->id === $emailTemplate->user_id;
     }
 
     /**
