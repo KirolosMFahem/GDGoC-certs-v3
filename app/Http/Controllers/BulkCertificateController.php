@@ -53,8 +53,18 @@ class BulkCertificateController extends Controller
 
         // Parse CSV file
         $file = $request->file('csv_file');
-        $csvData = array_map('str_getcsv', file($file->getRealPath()));
-        $headers = array_shift($csvData); // Remove header row
+        $csvData = [];
+        if (($handle = fopen($file->getRealPath(), 'r')) !== false) {
+            // Read the header row
+            $headers = fgetcsv($handle);
+            // Read each data row
+            while (($row = fgetcsv($handle)) !== false) {
+                $csvData[] = $row;
+            }
+            fclose($handle);
+        } else {
+            return back()->withErrors(['csv_file' => 'Unable to open the uploaded CSV file.']);
+        }
 
         // Expected headers: recipient_name, recipient_email, state, event_type, event_title, issue_date
         $expectedHeaders = ['recipient_name', 'recipient_email', 'state', 'event_type', 'event_title', 'issue_date'];
