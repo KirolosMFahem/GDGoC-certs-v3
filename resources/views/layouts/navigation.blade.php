@@ -20,6 +20,10 @@
                         <x-nav-link :href="route('admin.dashboard')" :active="request()->routeIs('admin.*')">
                             {{ __('Admin Panel') }}
                         </x-nav-link>
+                    @else
+                        <x-nav-link :href="route('dashboard.documentation.index')" :active="request()->routeIs('dashboard.documentation.*')">
+                            {{ __('Help') }}
+                        </x-nav-link>
                     @endif
                 </div>
             </div>
@@ -81,6 +85,10 @@
             @if(Auth::user()->role === 'superadmin')
                 <x-responsive-nav-link :href="route('admin.dashboard')" :active="request()->routeIs('admin.*')">
                     {{ __('Admin Panel') }}
+                </x-responsive-nav-link>
+            @else
+                <x-responsive-nav-link :href="route('dashboard.documentation.index')" :active="request()->routeIs('dashboard.documentation.*')">
+                    {{ __('Help') }}
                 </x-responsive-nav-link>
             @endif
         </div>

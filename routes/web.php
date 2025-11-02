@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\AdminLoginLogController;
 use App\Http\Controllers\Admin\AdminOidcController;
 use App\Http\Controllers\Admin\AdminUserController;
 use App\Http\Controllers\Admin\CertificateTemplateController as AdminCertificateTemplateController;
+use App\Http\Controllers\Admin\DocumentationController as AdminDocumentationController;
 use App\Http\Controllers\Admin\EmailTemplateController as AdminEmailTemplateController;
 use App\Http\Controllers\Auth\OAuthController;
 use App\Http\Controllers\BulkCertificateController;
@@ -12,6 +13,7 @@ use App\Http\Controllers\CertificateController;
 use App\Http\Controllers\CertificateTemplateController;
 use App\Http\Controllers\EmailTemplateController;
 use App\Http\Controllers\Leader\CertificateController as LeaderCertificateController;
+use App\Http\Controllers\Leader\DocumentationController as LeaderDocumentationController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PublicCertificateController;
 use App\Http\Controllers\SmtpProviderController;
@@ -61,6 +63,10 @@ Route::middleware(['auth'])->prefix('dashboard')->name('dashboard.')->group(func
 
     // SMTP Providers
     Route::resource('smtp', SmtpProviderController::class)->names('smtp');
+
+    // Documentation
+    Route::get('/documentation', [LeaderDocumentationController::class, 'index'])->name('documentation.index');
+    Route::get('/documentation/{documentation:slug}', [LeaderDocumentationController::class, 'show'])->name('documentation.show');
 });
 
 // Admin Routes - Protected by auth and superadmin middleware
@@ -81,6 +87,9 @@ Route::middleware(['auth', 'superadmin'])->prefix('admin')->name('admin.')->grou
     // Login Logs
     Route::get('/logs/logins', [AdminLoginLogController::class, 'index'])->name('logs.index');
     Route::get('/logs/feed', [AdminLoginLogController::class, 'feed'])->name('logs.feed');
+
+    // Documentation Management
+    Route::resource('documentation', AdminDocumentationController::class);
 });
 
 // Public Certificate Validation Routes - Domain-based

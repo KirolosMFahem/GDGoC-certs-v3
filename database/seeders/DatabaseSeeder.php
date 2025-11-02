@@ -22,5 +22,8 @@ class DatabaseSeeder extends Seeder
             'status' => 'active',
             'email_verified_at' => now(),
         ]);
+
+        // Seed documentation pages
+        $this->call(DocumentationSeeder::class);
     }
 }
