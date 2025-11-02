@@ -164,7 +164,7 @@
     <script>
         function openRevokeModal(certificateId, recipientName) {
             document.getElementById('revokeModal').classList.remove('hidden');
-            document.getElementById('revokeForm').action = '{{ url("/dashboard/certificates") }}/' + certificateId + '/revoke';
+            document.getElementById('revokeForm').action = '{{ route("dashboard.certificates.revoke", ["certificate" => "CERTIFICATE_ID_PLACEHOLDER"]) }}'.replace('CERTIFICATE_ID_PLACEHOLDER', certificateId);
             document.getElementById('recipientName').textContent = recipientName;
             document.getElementById('revocation_reason').value = '';
         }
