@@ -52,8 +52,8 @@
     </div>
 
     <!-- EasyMDE Integration -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/easymde@latest/dist/easymde.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/easymde@latest/dist/easymde.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/easymde@2.18.0/dist/easymde.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/easymde@2.18.0/dist/easymde.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const easyMDE = new EasyMDE({

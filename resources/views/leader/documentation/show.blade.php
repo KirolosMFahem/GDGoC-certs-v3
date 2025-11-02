@@ -25,7 +25,10 @@
                     <div class="w-3/4 p-6">
                         <div class="documentation-content prose max-w-none">
                             @php
-                                $converter = new \League\CommonMark\CommonMarkConverter();
+                                $converter = new \League\CommonMark\CommonMarkConverter([
+                                    'html_input' => 'escape',
+                                    'allow_unsafe_links' => false,
+                                ]);
                                 echo $converter->convert($page->content);
                             @endphp
                         </div>

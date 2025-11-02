@@ -38,7 +38,17 @@ class DocumentationController extends Controller
             'order' => ['required', 'integer', 'min:0'],
         ]);
 
-        $validated['slug'] = Str::slug($validated['title']);
+        $slug = Str::slug($validated['title']);
+        $originalSlug = $slug;
+        $counter = 1;
+
+        // Ensure unique slug
+        while (DocumentationPage::where('slug', $slug)->exists()) {
+            $slug = $originalSlug.'-'.$counter;
+            $counter++;
+        }
+
+        $validated['slug'] = $slug;
 
         DocumentationPage::create($validated);
 
@@ -73,7 +83,17 @@ class DocumentationController extends Controller
             'order' => ['required', 'integer', 'min:0'],
         ]);
 
-        $validated['slug'] = Str::slug($validated['title']);
+        $slug = Str::slug($validated['title']);
+        $originalSlug = $slug;
+        $counter = 1;
+
+        // Ensure unique slug (excluding current page)
+        while (DocumentationPage::where('slug', $slug)->where('id', '!=', $documentation->id)->exists()) {
+            $slug = $originalSlug.'-'.$counter;
+            $counter++;
+        }
+
+        $validated['slug'] = $slug;
 
         $documentation->update($validated);
 
