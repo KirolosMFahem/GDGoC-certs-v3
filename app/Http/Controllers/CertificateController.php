@@ -64,6 +64,7 @@ class CertificateController extends Controller
         // Create certificate
         Certificate::create([
             'user_id' => auth()->id(),
+            'certificate_template_id' => $validated['certificate_template_id'],
             'unique_id' => $uniqueId,
             'recipient_name' => $validated['recipient_name'],
             'recipient_email' => $validated['recipient_email'] ?? null,

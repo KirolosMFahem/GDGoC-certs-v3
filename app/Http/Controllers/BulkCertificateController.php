@@ -122,12 +122,18 @@ class BulkCertificateController extends Controller
                     continue;
                 }
 
+                // Get user's first SMTP provider ID (if any)
+                $smtpProviderId = auth()->user()->smtpProviders()->first()?->id;
+
                 // Dispatch job
                 ProcessCertificateRow::dispatch(
                     auth()->id(),
                     $rowData,
                     auth()->user()->name,
-                    auth()->user()->org_name ?? ''
+                    auth()->user()->org_name ?? '',
+                    $validated['certificate_template_id'],
+                    $validated['email_template_id'],
+                    $smtpProviderId
                 );
 
                 $processedCount++;
