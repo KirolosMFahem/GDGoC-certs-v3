@@ -60,6 +60,6 @@ class EmailTemplatePolicy
      */
     public function reset(User $user, EmailTemplate $emailTemplate): bool
     {
-        return true;
+        return $user->id === $emailTemplate->user_id;
     }
 }
