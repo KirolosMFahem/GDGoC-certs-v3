@@ -17,10 +17,10 @@
                     </div>
                     <p class="mb-2">
                         This certificate (ID: <span class="font-mono">{{ $certificate->unique_id }}</span>) was revoked on 
-                        <strong>{{ $certificate->revoked_at->format('F d, Y') }}</strong>.
+                        <strong>{{ $certificate->revoked_at ? $certificate->revoked_at->format('F d, Y') : 'Unknown' }}</strong>.
                     </p>
                     <p class="text-sm">
-                        <strong>Reason:</strong> {{ $certificate->revocation_reason }}
+                        <strong>Reason:</strong> {{ $certificate->revocation_reason ?? 'No reason provided' }}
                     </p>
                 </div>
             @else

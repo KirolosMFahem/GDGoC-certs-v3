@@ -39,13 +39,13 @@ class ProcessCertificateRow implements ShouldQueue
     public function handle(CertificateService $certificateService): void
     {
         // Find the User (Leader)
-        $user = User::find($this->userId);
+        $user = User::findOrFail($this->userId);
 
         // Find the CertificateTemplate
-        $certTemplate = CertificateTemplate::find($this->certificateTemplateId);
+        $certTemplate = CertificateTemplate::findOrFail($this->certificateTemplateId);
 
         // Find the EmailTemplate
-        $emailTemplate = EmailTemplate::find($this->emailTemplateId);
+        $emailTemplate = EmailTemplate::findOrFail($this->emailTemplateId);
 
         // Generate unique ID
         $uniqueId = Str::uuid()->toString();

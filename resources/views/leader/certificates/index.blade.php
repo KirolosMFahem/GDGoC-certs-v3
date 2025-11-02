@@ -84,8 +84,8 @@
                                                 </button>
                                             @else
                                                 <div class="text-sm text-gray-500">
-                                                    <div>Revoked on {{ $certificate->revoked_at->format('M d, Y') }}</div>
-                                                    <div class="text-xs mt-1">Reason: {{ $certificate->revocation_reason }}</div>
+                                                    <div>Revoked on {{ $certificate->revoked_at ? $certificate->revoked_at->format('M d, Y') : 'Unknown' }}</div>
+                                                    <div class="text-xs mt-1">Reason: {{ $certificate->revocation_reason ?? 'No reason provided' }}</div>
                                                 </div>
                                             @endif
                                         </td>
