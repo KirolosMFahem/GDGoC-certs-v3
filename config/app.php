@@ -123,4 +123,18 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Domains Configuration
+    |--------------------------------------------------------------------------
+    |
+    | Configure the domains used by the application for different purposes.
+    | The validation domain is used for public certificate validation.
+    |
+    */
+
+    'domains' => [
+        'validation' => env('VALIDATION_DOMAIN', 'certs.gdg-oncampus.dev'),
+    ],
+
 ];

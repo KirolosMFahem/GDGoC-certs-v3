@@ -9,6 +9,7 @@ class Certificate extends Model
 {
     protected $fillable = [
         'user_id',
+        'certificate_template_id',
         'unique_id',
         'recipient_name',
         'recipient_email',
@@ -19,15 +20,24 @@ class Certificate extends Model
         'issuer_name',
         'org_name',
         'data',
+        'status',
+        'revoked_at',
+        'revocation_reason',
     ];
 
     protected $casts = [
         'issue_date' => 'date',
         'data' => 'array',
+        'revoked_at' => 'datetime',
     ];
 
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function certificateTemplate(): BelongsTo
+    {
+        return $this->belongsTo(CertificateTemplate::class);
     }
 }

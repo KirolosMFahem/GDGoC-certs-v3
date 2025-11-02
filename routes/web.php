@@ -11,7 +11,9 @@ use App\Http\Controllers\BulkCertificateController;
 use App\Http\Controllers\CertificateController;
 use App\Http\Controllers\CertificateTemplateController;
 use App\Http\Controllers\EmailTemplateController;
+use App\Http\Controllers\Leader\CertificateController as LeaderCertificateController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\PublicCertificateController;
 use App\Http\Controllers\SmtpProviderController;
 use Illuminate\Support\Facades\Route;
 
@@ -53,6 +55,10 @@ Route::middleware(['auth'])->prefix('dashboard')->name('dashboard.')->group(func
     Route::get('/certificates/bulk', [BulkCertificateController::class, 'create'])->name('certificates.bulk');
     Route::post('/certificates/bulk', [BulkCertificateController::class, 'store'])->name('certificates.bulk.store');
 
+    // Certificate Management
+    Route::get('/certificates', [LeaderCertificateController::class, 'index'])->name('certificates.index');
+    Route::post('/certificates/{certificate}/revoke', [LeaderCertificateController::class, 'revoke'])->name('certificates.revoke');
+
     // SMTP Providers
     Route::resource('smtp', SmtpProviderController::class)->names('smtp');
 });
@@ -75,6 +81,14 @@ Route::middleware(['auth', 'superadmin'])->prefix('admin')->name('admin.')->grou
     // Login Logs
     Route::get('/logs/logins', [AdminLoginLogController::class, 'index'])->name('logs.index');
     Route::get('/logs/feed', [AdminLoginLogController::class, 'feed'])->name('logs.feed');
+});
+
+// Public Certificate Validation Routes - Domain-based
+Route::domain(config('app.domains.validation'))->group(function () {
+    Route::get('/', [PublicCertificateController::class, 'index'])->name('public.validate.index');
+    Route::get('/validate', [PublicCertificateController::class, 'validate'])->name('public.validate.query');
+    Route::get('/c/{unique_id}', [PublicCertificateController::class, 'show'])->name('public.certificate.show');
+    Route::get('/c/{unique_id}/download', [PublicCertificateController::class, 'download'])->name('public.certificate.download');
 });
 
 require __DIR__.'/auth.php';

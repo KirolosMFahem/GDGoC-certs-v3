@@ -2,9 +2,17 @@
 
 namespace App\Jobs;
 
+use App\Mail\SendCertificateMail;
 use App\Models\Certificate;
+use App\Models\CertificateTemplate;
+use App\Models\EmailTemplate;
+use App\Models\User;
+use App\Services\CertificateService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
+use Illuminate\Support\Facades\Blade;
+use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 
 class ProcessCertificateRow implements ShouldQueue
@@ -18,7 +26,9 @@ class ProcessCertificateRow implements ShouldQueue
         public int $userId,
         public array $row,
         public string $issuerName,
-        public string $orgName
+        public string $orgName,
+        public int $certificateTemplateId,
+        public int $emailTemplateId
     ) {
         //
     }
@@ -26,14 +36,24 @@ class ProcessCertificateRow implements ShouldQueue
     /**
      * Execute the job.
      */
-    public function handle(): void
+    public function handle(CertificateService $certificateService): void
     {
+        // Find the User (Leader)
+        $user = User::find($this->userId);
+
+        // Find the CertificateTemplate
+        $certTemplate = CertificateTemplate::find($this->certificateTemplateId);
+
+        // Find the EmailTemplate
+        $emailTemplate = EmailTemplate::find($this->emailTemplateId);
+
         // Generate unique ID
         $uniqueId = Str::uuid()->toString();
 
-        // Create certificate
-        Certificate::create([
+        // Create certificate record
+        $certificate = Certificate::create([
             'user_id' => $this->userId,
+            'certificate_template_id' => $this->certificateTemplateId,
             'unique_id' => $uniqueId,
             'recipient_name' => $this->row['recipient_name'],
             'recipient_email' => $this->row['recipient_email'] ?? null,
@@ -44,5 +64,52 @@ class ProcessCertificateRow implements ShouldQueue
             'issuer_name' => $this->issuerName,
             'org_name' => $this->orgName,
         ]);
+
+        // Generate PDF
+        $pdfData = $certificateService->generate($certificate);
+
+        // Configure Mailer - check for user's SMTP setting
+        $mailerName = 'smtp'; // default mailer
+        $smtpSetting = $user->smtpProviders()->first();
+
+        if ($smtpSetting) {
+            // Configure custom SMTP mailer
+            Config::set('mail.mailers.custom_smtp', [
+                'transport' => 'smtp',
+                'host' => $smtpSetting->host,
+                'port' => $smtpSetting->port,
+                'username' => $smtpSetting->username,
+                'password' => $smtpSetting->password,
+                'encryption' => $smtpSetting->encryption,
+                'timeout' => null,
+            ]);
+
+            Config::set('mail.from.address', $smtpSetting->from_address);
+            Config::set('mail.from.name', $smtpSetting->from_name);
+
+            $mailerName = 'custom_smtp';
+        }
+
+        // Render Email
+        $replacements = [
+            'Recipient_Name' => $certificate->recipient_name,
+            'Event_Title' => $certificate->event_title,
+            'Org_Name' => $certificate->org_name,
+            'state' => $certificate->state,
+            'event_type' => $certificate->event_type,
+            'issue_date' => $certificate->issue_date->toFormattedDateString(),
+            'issuer_name' => $certificate->issuer_name,
+            'unique_id' => $certificate->unique_id,
+        ];
+
+        $body = Blade::render($emailTemplate->body, $replacements);
+        $subject = Blade::render($emailTemplate->subject, $replacements);
+
+        // Send Email (only if recipient_email is provided)
+        if ($certificate->recipient_email) {
+            Mail::mailer($mailerName)
+                ->to($certificate->recipient_email)
+                ->send(new SendCertificateMail($subject, $body, $pdfData));
+        }
     }
 }

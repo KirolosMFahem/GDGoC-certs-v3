@@ -127,7 +127,9 @@ class BulkCertificateController extends Controller
                     auth()->id(),
                     $rowData,
                     auth()->user()->name,
-                    auth()->user()->org_name ?? ''
+                    auth()->user()->org_name ?? '',
+                    $validated['certificate_template_id'],
+                    $validated['email_template_id']
                 );
 
                 $processedCount++;
