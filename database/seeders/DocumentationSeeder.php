@@ -49,7 +49,36 @@ For detailed information on each feature, please refer to the specific documenta
 
 The bulk upload feature allows you to generate multiple certificates at once by uploading a CSV file.
 
-## Step 1: Prepare Your CSV File
+## Step 1: Download the CSV Template
+
+**[Download CSV Template](/templates/bulk-certificates-template.csv)**
+
+Click the link above to download a ready-to-use CSV template with sample data.
+
+## Step 2: Edit the CSV File
+
+You can edit the CSV file using:
+
+### Using Google Sheets
+
+1. Go to [Google Sheets](https://sheets.google.com)
+2. Click **File > Import** and upload the template
+3. Edit the data in the spreadsheet
+4. Replace the sample data with your actual recipient information
+5. When done, click **File > Download > Comma Separated Values (.csv)**
+6. Save the file to your computer
+
+### Using Microsoft Excel
+
+1. Open Microsoft Excel
+2. Click **File > Open** and select the downloaded template
+3. Edit the data in the spreadsheet
+4. Replace the sample data with your actual recipient information
+5. When done, click **File > Save As**
+6. Choose **CSV (Comma delimited) (*.csv)** as the file type
+7. Save the file to your computer
+
+### CSV File Format
 
 Your CSV file must include the following headers:
 
@@ -65,17 +94,13 @@ Jane Smith,jane@example.com,Web Development Workshop
 Alice Johnson,alice@example.com,Mobile App Development
 ```
 
-## Step 2: Download the Template
-
-1. Navigate to **Dashboard > Bulk Certificates**
-2. Click on the **Download CSV Template** link
-3. Fill in your recipient data
+**Important:** Each row represents one certificate recipient.
 
 ## Step 3: Upload Your CSV File
 
-1. Go to **Dashboard > Bulk Certificates**
+1. Navigate to **Dashboard > Bulk Certificates**
 2. Select your certificate template
-3. Choose your CSV file
+3. Click **Choose File** and select your edited CSV file
 4. Click **Generate Certificates**
 
 ## Step 4: Review and Send
@@ -91,7 +116,9 @@ After generation, you can:
 - Make sure all email addresses are valid
 - The event title will be used in the certificate
 - Certificates are generated immediately upon upload
-- You can track all certificates in the **Certificates** section',
+- You can track all certificates in the **Certificates** section
+- Do not change the header row (first row) in the CSV file
+- Save the file as CSV format, not Excel format (.xlsx)',
             'order' => 2,
         ]);
 
