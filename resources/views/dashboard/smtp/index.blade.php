@@ -1,3 +1,9 @@
+{{--
+    SMTP Providers Index View
+    
+    Expected variables:
+    @var \Illuminate\Database\Eloquent\Collection<\App\Models\SmtpProvider> $providers - Collection of user's SMTP providers
+--}}
 <x-app-layout>
     <x-slot name="header">
         <div class="flex justify-between items-center">

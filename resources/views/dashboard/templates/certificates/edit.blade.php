@@ -1,3 +1,9 @@
+{{--
+    Edit Certificate Template View
+    
+    Expected variables:
+    @var \App\Models\CertificateTemplate $certificateTemplate - The certificate template being edited
+--}}
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">

@@ -1,3 +1,10 @@
+{{--
+    Certificate Templates Index View
+    
+    Expected variables:
+    @var \Illuminate\Database\Eloquent\Collection<\App\Models\CertificateTemplate> $userTemplates - Collection of user's certificate templates
+    @var \Illuminate\Database\Eloquent\Collection<\App\Models\CertificateTemplate> $globalTemplates - Collection of global certificate templates
+--}}
 <x-app-layout>
     <x-slot name="header">
         <div class="flex justify-between items-center">

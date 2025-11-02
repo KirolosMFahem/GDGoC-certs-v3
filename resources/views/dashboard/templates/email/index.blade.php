@@ -1,3 +1,10 @@
+{{--
+    Email Templates Index View
+    
+    Expected variables:
+    @var \Illuminate\Database\Eloquent\Collection<\App\Models\EmailTemplate> $userTemplates - Collection of user's email templates
+    @var \Illuminate\Database\Eloquent\Collection<\App\Models\EmailTemplate> $globalTemplates - Collection of global email templates
+--}}
 <x-app-layout>
     <x-slot name="header">
         <div class="flex justify-between items-center">

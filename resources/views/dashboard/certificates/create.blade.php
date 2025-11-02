@@ -1,3 +1,12 @@
+{{--
+    Create Certificate View
+    
+    Expected variables:
+    @var \Illuminate\Database\Eloquent\Collection<\App\Models\CertificateTemplate> $userCertTemplates - Collection of user's certificate templates
+    @var \Illuminate\Database\Eloquent\Collection<\App\Models\CertificateTemplate> $globalCertTemplates - Collection of global certificate templates
+    @var \Illuminate\Database\Eloquent\Collection<\App\Models\EmailTemplate> $userEmailTemplates - Collection of user's email templates
+    @var \Illuminate\Database\Eloquent\Collection<\App\Models\EmailTemplate> $globalEmailTemplates - Collection of global email templates
+--}}
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">

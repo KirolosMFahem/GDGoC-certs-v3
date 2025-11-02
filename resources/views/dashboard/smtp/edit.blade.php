@@ -1,3 +1,9 @@
+{{--
+    Edit SMTP Provider View
+    
+    Expected variables:
+    @var \App\Models\SmtpProvider $smtpProvider - The SMTP provider being edited
+--}}
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">
