@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Exceptions\CertificateTemplateNotFoundException;
 use App\Models\Certificate;
 use Illuminate\Support\Facades\App;
 
@@ -16,7 +17,7 @@ class CertificateService
         $template = $certificate->certificateTemplate;
 
         if (! $template) {
-            throw new \Exception('Certificate template not found');
+            throw new CertificateTemplateNotFoundException;
         }
 
         // Get the template content
