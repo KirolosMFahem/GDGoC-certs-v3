@@ -6,7 +6,6 @@ use App\Mail\SendCertificateMail;
 use App\Models\Certificate;
 use App\Models\CertificateTemplate;
 use App\Models\EmailTemplate;
-use App\Models\User;
 use App\Services\CertificateService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
@@ -28,7 +27,8 @@ class ProcessCertificateRow implements ShouldQueue
         public string $issuerName,
         public string $orgName,
         public int $certificateTemplateId,
-        public int $emailTemplateId
+        public int $emailTemplateId,
+        public ?int $smtpProviderId = null
     ) {
         //
     }
@@ -38,9 +38,6 @@ class ProcessCertificateRow implements ShouldQueue
      */
     public function handle(CertificateService $certificateService): void
     {
-        // Find the User (Leader)
-        $user = User::findOrFail($this->userId);
-
         // Find the CertificateTemplate
         $certTemplate = CertificateTemplate::findOrFail($this->certificateTemplateId);
 
@@ -70,24 +67,27 @@ class ProcessCertificateRow implements ShouldQueue
 
         // Configure Mailer - check for user's SMTP setting
         $mailerName = 'smtp'; // default mailer
-        $smtpSetting = $user->smtpProviders()->first();
 
-        if ($smtpSetting) {
-            // Configure custom SMTP mailer
-            Config::set('mail.mailers.custom_smtp', [
-                'transport' => 'smtp',
-                'host' => $smtpSetting->host,
-                'port' => $smtpSetting->port,
-                'username' => $smtpSetting->username,
-                'password' => $smtpSetting->password,
-                'encryption' => $smtpSetting->encryption,
-                'timeout' => null,
-            ]);
+        if ($this->smtpProviderId) {
+            $smtpSetting = \App\Models\SmtpProvider::find($this->smtpProviderId);
 
-            Config::set('mail.from.address', $smtpSetting->from_address);
-            Config::set('mail.from.name', $smtpSetting->from_name);
+            if ($smtpSetting) {
+                // Configure custom SMTP mailer
+                Config::set('mail.mailers.custom_smtp', [
+                    'transport' => 'smtp',
+                    'host' => $smtpSetting->host,
+                    'port' => $smtpSetting->port,
+                    'username' => $smtpSetting->username,
+                    'password' => $smtpSetting->password,
+                    'encryption' => $smtpSetting->encryption,
+                    'timeout' => null,
+                ]);
 
-            $mailerName = 'custom_smtp';
+                Config::set('mail.from.address', $smtpSetting->from_address);
+                Config::set('mail.from.name', $smtpSetting->from_name);
+
+                $mailerName = 'custom_smtp';
+            }
         }
 
         // Render Email
