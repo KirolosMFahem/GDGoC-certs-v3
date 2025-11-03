@@ -254,7 +254,25 @@ Configure the following secrets in your GitHub repository (Settings > Secrets an
 
 ### Deployment Workflow
 
-The CI/CD pipeline (`.github/workflows/deploy.yml`) automatically:
+The CI/CD pipeline consists of two main workflows:
+
+#### Docker Deployment Test (`.github/workflows/docker-test.yml`)
+
+Runs automatically on **every Pull Request** to test Docker deployment:
+
+1. **Docker Build Test**: Verifies the Dockerfile builds successfully
+2. **Docker Compose Test**: 
+   - Starts all services (PostgreSQL, Redis, PHP, Nginx)
+   - Waits for services to be healthy
+   - Runs database migrations
+   - Tests application health endpoint
+3. **Security Scan**: Scans Docker image for vulnerabilities using Trivy
+
+This ensures that Docker deployments work correctly before merging to main.
+
+#### Production Deployment (`.github/workflows/deploy.yml`)
+
+Runs automatically on every push to `main` branch:
 
 1. Runs tests on every push to `main` branch
 2. Builds and pushes Docker image to Docker Hub (if tests pass)
@@ -262,6 +280,33 @@ The CI/CD pipeline (`.github/workflows/deploy.yml`) automatically:
 4. Pulls the latest Docker image
 5. Restarts services with `docker compose up -d`
 6. Runs Laravel optimizations
+
+### Testing Docker Changes Locally
+
+Before pushing Docker-related changes, you can test them locally:
+
+```bash
+# Test Docker build
+docker build -t gdgoc-certs:test .
+
+# Test Docker Compose deployment
+docker compose up -d
+docker compose ps
+docker compose logs -f
+
+# Test application health
+curl http://localhost:8000
+
+# Clean up
+docker compose down -v
+```
+
+The Docker test workflow will automatically run these checks on every PR that modifies:
+- `Dockerfile`
+- `docker-compose.yml`
+- Files in `docker/` directory
+- PHP files
+- Composer or NPM dependencies
 
 ### Manual Deployment
 
