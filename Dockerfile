@@ -66,18 +66,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libpq-dev \
     default-mysql-client \
     default-libmysqlclient-dev \
-    libpng16-16 \
     libpng-dev \
-    libjpeg62-turbo \
     libjpeg-dev \
-    libfreetype6 \
     libfreetype6-dev \
-    libzip4 \
     libzip-dev \
-    libicu72 \
-    libonig5 \
+    libicu-dev \
+    libonig-dev \
     curl \
-    zlib1g \
     zlib1g-dev \
     && rm -rf /var/lib/apt/lists/*
 
@@ -110,6 +105,13 @@ RUN groupadd -g 1000 appuser && \
 # Copy application from builder
 COPY --from=builder --chown=appuser:appuser /var/www/html /var/www/html
 
+# Copy composer for runtime dependency installation
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
+# Copy and configure entrypoint script
+COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+
 # Set permissions
 RUN chown -R appuser:appuser /var/www/html/storage /var/www/html/bootstrap/cache
 
@@ -119,4 +121,6 @@ USER appuser
 # Expose port
 EXPOSE 9000
 
+# Set entrypoint and default command
+ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
 CMD ["php-fpm"]
