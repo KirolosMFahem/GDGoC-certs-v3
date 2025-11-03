@@ -78,82 +78,115 @@ jobs:
 
       - name: Build and start Docker Compose services
         run: |
-          docker compose build php
-          docker compose up -d postgres redis
-          
+          # Build php image, then start all key services together (build ensures image is available)
+          docker compose build --pull --no-cache php
+          docker compose up -d --build postgres redis php nginx
+
+      - name: Wait for containers to be running
+        run: |
+          echo "Waiting for containers to appear as Up..."
+          max_wait=120
+          end=$((SECONDS + max_wait))
+          while [ $SECONDS -le $end ]; do
+            docker compose ps
+            # Check if all required containers are running by checking their status individually
+            running_count=0
+            if docker compose ps postgres | grep -q "Up"; then running_count=$((running_count + 1)); fi
+            if docker compose ps redis | grep -q "Up"; then running_count=$((running_count + 1)); fi
+            if docker compose ps php | grep -q "Up"; then running_count=$((running_count + 1)); fi
+            if docker compose ps nginx | grep -q "Up"; then running_count=$((running_count + 1)); fi
+            
+            if [ "$running_count" -ge 4 ]; then
+              echo "All required containers are running"
+              break
+            fi
+            sleep 2
+          done
+          if [ $SECONDS -gt $end ]; then
+            echo "Timeout waiting for containers to be Up"
+            docker compose ps
+            docker compose logs --tail=200
+            exit 1
+          fi
+
       - name: Wait for PostgreSQL to be ready
         run: |
-          echo "Waiting for PostgreSQL to be ready..."
+          echo "Waiting for PostgreSQL to be ready (pg_isready)..."
           DB_USER="${DB_USERNAME:-gdgoc_user}"
-          timeout 60 bash -c "until docker compose exec -T postgres pg_isready -U $DB_USER; do sleep 2; done"
-          echo "PostgreSQL is ready!"
+          DB_NAME="${DB_DATABASE:-gdgoc_certs}"
+          max_wait=120
+          end=$((SECONDS + max_wait))
+          until timeout 10 docker compose exec -T postgres pg_isready -U "$DB_USER" -d "$DB_NAME" >/dev/null 2>&1; do
+            if [ $SECONDS -gt $end ]; then
+              echo "Postgres did not become ready in time"
+              docker compose logs postgres --tail=200
+              exit 1
+            fi
+            sleep 2
+          done
+          echo "Postgres is ready"
         env:
           DB_USERNAME: gdgoc_user
+          DB_DATABASE: gdgoc_certs
 
       - name: Wait for Redis to be ready
         run: |
           echo "Waiting for Redis to be ready..."
-          timeout 60 bash -c 'until docker compose exec -T redis redis-cli ping | grep -q PONG; do sleep 2; done'
-          echo "Redis is ready!"
+          max_wait=60
+          end=$((SECONDS + max_wait))
+          until timeout 10 docker compose exec -T redis redis-cli ping | grep -q PONG; do
+            if [ $SECONDS -gt $end ]; then
+              echo "Redis did not become ready in time"
+              docker compose logs redis --tail=200
+              exit 1
+            fi
+            sleep 2
+          done
+          echo "Redis is ready"
 
-      - name: Start PHP and Nginx services
-        run: |
-          docker compose up -d php nginx
-
-      - name: Wait for services to be healthy
-        run: |
-          echo "Waiting for all services to be ready..."
-          sleep 10
-          docker compose ps
-
-      - name: Check service health
-        run: |
-          echo "Checking PostgreSQL connection..."
-          DB_USER="${DB_USERNAME:-gdgoc_user}"
-          docker compose exec -T postgres pg_isready -U $DB_USER
-          
-          echo "Checking Redis connection..."
-          docker compose exec -T redis redis-cli ping
-          
-          echo "Checking PHP-FPM is running..."
-          docker compose exec -T php php --version
-          
-          echo "Checking Nginx is running..."
-          docker compose ps nginx | grep -q "Up"
-        env:
-          DB_USERNAME: gdgoc_user
-
-      - name: Run database migrations
+      - name: Run database migrations (with retries)
         run: |
           echo "Running database migrations..."
-          docker compose exec -T php php artisan migrate --force
+          # Run migrations using docker compose exec once PHP is up and stable. Retry on failure.
+          attempts=0
+          max_attempts=6
+          until docker compose exec -T php php artisan migrate --force; do
+            attempts=$((attempts+1))
+            echo "Migration attempt $attempts failed — sleeping before retry..."
+            docker compose logs php --tail=200
+            if [ "$attempts" -ge "$max_attempts" ]; then
+              echo "Migrations failed after $attempts attempts"
+              docker compose ps
+              docker compose logs --tail=400
+              exit 1
+            fi
+            sleep 5
+          done
+          echo "Migrations completed"
 
-      - name: Test application health
+      - name: Test application health (stable)
         run: |
           echo "Testing if application is responding..."
           # Give nginx and php-fpm a moment to fully initialize
           sleep 5
-          
-          # Get the app port from environment or default to 8000
           APP_PORT="${APP_PORT:-8000}"
-          
-          # Test the application endpoint
-          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:$APP_PORT || echo "000")
-          echo "HTTP Response Code: $HTTP_CODE"
-          
-          if [ "$HTTP_CODE" = "000" ]; then
-            echo "Failed to connect to application on port $APP_PORT"
-            docker compose logs nginx
-            docker compose logs php
-            exit 1
-          elif [ "$HTTP_CODE" = "500" ] || [ "$HTTP_CODE" = "502" ] || [ "$HTTP_CODE" = "503" ]; then
-            echo "Application returned error $HTTP_CODE"
-            docker compose logs nginx
-            docker compose logs php
-            exit 1
-          else
-            echo "Application is responding with code $HTTP_CODE"
-          fi
+          attempts=0
+          max_attempts=12
+          while [ "$attempts" -lt "$max_attempts" ]; do
+            HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:$APP_PORT || echo "000")
+            echo "HTTP Response Code: $HTTP_CODE"
+            if [ "$HTTP_CODE" = "200" ] || [ "$HTTP_CODE" = "302" ] || [ "$HTTP_CODE" = "301" ]; then
+              echo "Application is responding with code $HTTP_CODE"
+              exit 0
+            fi
+            attempts=$((attempts+1))
+            echo "Attempt $attempts: app not ready, sleeping 5s..."
+            sleep 5
+          done
+          echo "Application did not respond with a healthy status after $max_attempts attempts"
+          docker compose logs nginx --tail=200
+          docker compose logs php --tail=200
+          exit 1
         env:
           APP_PORT: 8000
 
@@ -164,16 +197,16 @@ jobs:
           docker compose ps
           echo ""
           echo "=== PostgreSQL Logs ==="
-          docker compose logs postgres
+          docker compose logs postgres --tail=300
           echo ""
           echo "=== Redis Logs ==="
-          docker compose logs redis
+          docker compose logs redis --tail=300
           echo ""
           echo "=== PHP Logs ==="
-          docker compose logs php
+          docker compose logs php --tail=300
           echo ""
           echo "=== Nginx Logs ==="
-          docker compose logs nginx
+          docker compose logs nginx --tail=300
 
       - name: Clean up
         if: always()
