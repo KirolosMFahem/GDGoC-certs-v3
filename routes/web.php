@@ -17,8 +17,108 @@ use App\Http\Controllers\Leader\DocumentationController as LeaderDocumentationCo
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PublicCertificateController;
 use App\Http\Controllers\SmtpProviderController;
+use App\Http\Middleware\EnsureUserIsSuperadmin;
 use Illuminate\Support\Facades\Route;
 
+// Public validation page (certs.gdg-oncampus.dev)
+Route::domain(config('app.domains.public', 'certs.gdg-oncampus.dev'))
+    ->group(function () {
+        Route::get('/', [PublicCertificateController::class, 'index'])->name('public.validate.index');
+        Route::get('/validate', [PublicCertificateController::class, 'validate'])->name('public.validate.query');
+        Route::get('/c/{unique_id}', [PublicCertificateController::class, 'show'])->name('public.certificate.show');
+        Route::get('/c/{unique_id}/download', [PublicCertificateController::class, 'download'])->name('public.certificate.download');
+    });
+
+// Admin dashboard (sudo.certs-admin.certs.gdg-oncampus.dev)
+Route::domain(config('app.domains.admin', 'sudo.certs-admin.certs.gdg-oncampus.dev'))
+    ->middleware(['auth'])
+    ->group(function () {
+        // OAuth / OIDC Routes
+        Route::get('/auth/redirect', [OAuthController::class, 'redirect'])->name('oauth.redirect')->withoutMiddleware(['auth']);
+        Route::get('/auth/callback', [OAuthController::class, 'callback'])->name('oauth.callback')->withoutMiddleware(['auth']);
+
+        // Leader Routes - Dashboard
+        Route::get('/dashboard', function () {
+            return view('dashboard');
+        })->name('dashboard');
+
+        // Leader Routes - Protected by auth middleware
+        Route::prefix('dashboard')->name('dashboard.')->group(function () {
+            // Certificate Templates
+            Route::post('/templates/certificates/{certificateTemplate}/clone', [CertificateTemplateController::class, 'clone'])->name('templates.certificates.clone');
+            Route::post('/templates/certificates/{certificateTemplate}/reset', [CertificateTemplateController::class, 'reset'])->name('templates.certificates.reset');
+            Route::resource('templates/certificates', CertificateTemplateController::class)->names('templates.certificates');
+
+            // Email Templates
+            Route::post('/templates/email/{emailTemplate}/clone', [EmailTemplateController::class, 'clone'])->name('templates.email.clone');
+            Route::post('/templates/email/{emailTemplate}/reset', [EmailTemplateController::class, 'reset'])->name('templates.email.reset');
+            Route::resource('templates/email', EmailTemplateController::class)->names('templates.email');
+
+            // Certificates
+            Route::get('/certificates/create', [CertificateController::class, 'create'])->name('certificates.create');
+            Route::post('/certificates', [CertificateController::class, 'store'])->name('certificates.store');
+
+            // Bulk Certificates
+            Route::get('/certificates/bulk', [BulkCertificateController::class, 'create'])->name('certificates.bulk');
+            Route::post('/certificates/bulk', [BulkCertificateController::class, 'store'])->name('certificates.bulk.store');
+
+            // Certificate Management
+            Route::get('/certificates', [LeaderCertificateController::class, 'index'])->name('certificates.index');
+            Route::post('/certificates/{certificate}/revoke', [LeaderCertificateController::class, 'revoke'])->name('certificates.revoke');
+
+            // SMTP Providers
+            Route::resource('smtp', SmtpProviderController::class)->names('smtp');
+
+            // Documentation
+            Route::get('/documentation', [LeaderDocumentationController::class, 'index'])->name('documentation.index');
+            Route::get('/documentation/{documentation:slug}', [LeaderDocumentationController::class, 'show'])->name('documentation.show');
+        });
+
+        // Superadmin Routes
+        Route::middleware(EnsureUserIsSuperadmin::class)
+            ->prefix('admin')
+            ->name('admin.')
+            ->group(function () {
+                Route::get('/', [AdminDashboardController::class, 'index'])->name('dashboard');
+                Route::get('/dashboard', [AdminDashboardController::class, 'index']);
+
+                // User Management
+                Route::resource('users', AdminUserController::class)->except(['show']);
+
+                // Template Management
+                Route::resource('templates/certificates', AdminCertificateTemplateController::class)->names('templates.certificates');
+                Route::resource('templates/email', AdminEmailTemplateController::class)->names('templates.email');
+
+                // OIDC Settings
+                Route::get('/settings/oidc', [AdminOidcController::class, 'edit'])->name('oidc.edit');
+                Route::post('/settings/oidc', [AdminOidcController::class, 'update'])->name('oidc.update');
+
+                // Login Logs
+                Route::get('/logs/logins', [AdminLoginLogController::class, 'index'])->name('logs.index');
+                Route::get('/logs/feed', [AdminLoginLogController::class, 'feed'])->name('logs.feed');
+
+                // Documentation Management
+                Route::resource('documentation', AdminDocumentationController::class);
+            });
+
+        // Profile routes (on admin domain)
+        Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit.admin');
+        Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update.admin');
+        Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy.admin');
+    });
+
+// Add a root route for the admin domain to redirect to login
+Route::domain(config('app.domains.admin', 'sudo.certs-admin.certs.gdg-oncampus.dev'))
+    ->group(function () {
+        Route::get('/', function () {
+            return redirect()->route('login');
+        });
+    });
+
+// Auth routes - available globally for testing and non-domain access
+require __DIR__.'/auth.php';
+
+// Non-domain routes for testing and local development
 Route::get('/', function () {
     return view('welcome');
 });
@@ -33,11 +133,11 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
-// OAuth / OIDC Routes
-Route::get('/auth/redirect', [OAuthController::class, 'redirect'])->name('oauth.redirect');
-Route::get('/auth/callback', [OAuthController::class, 'callback'])->name('oauth.callback');
+// OAuth / OIDC Routes (non-domain fallback)
+Route::get('/auth/redirect', [OAuthController::class, 'redirect'])->name('oauth.redirect.fallback');
+Route::get('/auth/callback', [OAuthController::class, 'callback'])->name('oauth.callback.fallback');
 
-// Leader Routes - Protected by auth middleware
+// Leader Routes - Protected by auth middleware (non-domain fallback)
 Route::middleware(['auth'])->prefix('dashboard')->name('dashboard.')->group(function () {
     // Certificate Templates
     Route::post('/templates/certificates/{certificateTemplate}/clone', [CertificateTemplateController::class, 'clone'])->name('templates.certificates.clone');
@@ -69,7 +169,7 @@ Route::middleware(['auth'])->prefix('dashboard')->name('dashboard.')->group(func
     Route::get('/documentation/{documentation:slug}', [LeaderDocumentationController::class, 'show'])->name('documentation.show');
 });
 
-// Admin Routes - Protected by auth and superadmin middleware
+// Admin Routes - Protected by auth and superadmin middleware (non-domain fallback)
 Route::middleware(['auth', 'superadmin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
 
@@ -92,12 +192,12 @@ Route::middleware(['auth', 'superadmin'])->prefix('admin')->name('admin.')->grou
     Route::resource('documentation', AdminDocumentationController::class);
 });
 
-// Public Certificate Validation Routes - Domain-based
+// Public Certificate Validation Routes - Domain-based (keep for backwards compatibility)
 Route::domain(config('app.domains.validation'))->group(function () {
-    Route::get('/', [PublicCertificateController::class, 'index'])->name('public.validate.index');
-    Route::get('/validate', [PublicCertificateController::class, 'validate'])->name('public.validate.query');
-    Route::get('/c/{unique_id}', [PublicCertificateController::class, 'show'])->name('public.certificate.show');
-    Route::get('/c/{unique_id}/download', [PublicCertificateController::class, 'download'])->name('public.certificate.download');
+    Route::get('/', [PublicCertificateController::class, 'index'])->name('public.validate.index.legacy');
+    Route::get('/validate', [PublicCertificateController::class, 'validate'])->name('public.validate.query.legacy');
+    Route::get('/c/{unique_id}', [PublicCertificateController::class, 'show'])->name('public.certificate.show.legacy');
+    Route::get('/c/{unique_id}/download', [PublicCertificateController::class, 'download'])->name('public.certificate.download.legacy');
 });
 
-require __DIR__.'/auth.php';
+
