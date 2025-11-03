@@ -72,8 +72,7 @@ RUN apk add --no-cache \
     icu-libs \
     oniguruma \
     curl \
-    zlib \
-    zlib-dev
+    zlib
 
 # Install PHP extensions
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
