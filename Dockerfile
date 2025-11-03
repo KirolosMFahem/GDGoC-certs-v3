@@ -15,7 +15,8 @@ RUN apk add --no-cache \
     git \
     curl \
     nodejs \
-    npm
+    npm \
+    zlib-dev
 
 # Install PHP extensions including Redis, BCMath, PDO MySQL
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
@@ -70,7 +71,9 @@ RUN apk add --no-cache \
     libzip \
     icu-libs \
     oniguruma \
-    curl
+    curl \
+    zlib \
+    zlib-dev
 
 # Install PHP extensions
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
