@@ -34,7 +34,7 @@ A secure, multi-tenant certificate generation platform built with Laravel 11, Po
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/KirolosMFahem/GDGoC-certs-v3.git
+   git clone https://github.com/GDG-on-Campus-ASU/GDGoC-certs-v3.git
    cd GDGoC-certs-v3
    ```
 
@@ -269,7 +269,7 @@ The deployment guide covers:
 
 ```bash
 # On production server
-git clone https://github.com/KirolosMFahem/GDGoC-certs-v3.git
+git clone https://github.com/GDG-on-Campus-ASU/GDGoC-certs-v3.git
 cd GDGoC-certs-v3
 cp .env.example .env
 # Edit .env with production settings
@@ -301,5 +301,5 @@ This branch is managed manually and contains only deployment-specific files.
 
 ## License
 
-The GDGoC Certificate Generation Platform is open-source software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+The GDGoC Certificate Generation Platform is open-source software licensed under the [AGPL license](https://opensource.org/licenses/AGPL).
 
