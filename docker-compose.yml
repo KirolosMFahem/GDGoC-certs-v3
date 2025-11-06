@@ -67,6 +67,8 @@ services:
     volumes:
       - .:/var/www/html
       - ./storage:/var/www/html/storage
+      - vendor:/var/www/html/vendor
+      - node_modules:/var/www/html/node_modules
     environment:
       DB_CONNECTION: ${DB_CONNECTION:-pgsql}
       DB_HOST: ${DB_HOST:-postgres}
@@ -99,6 +101,8 @@ services:
     volumes:
       - .:/var/www/html
       - ./storage:/var/www/html/storage
+      - vendor:/var/www/html/vendor
+      - node_modules:/var/www/html/node_modules
     environment:
       DB_CONNECTION: ${DB_CONNECTION:-pgsql}
       DB_HOST: ${DB_HOST:-postgres}
@@ -133,6 +137,8 @@ services:
     volumes:
       - .:/var/www/html
       - ./storage:/var/www/html/storage
+      - vendor:/var/www/html/vendor
+      - node_modules:/var/www/html/node_modules
     environment:
       DB_CONNECTION: ${DB_CONNECTION:-pgsql}
       DB_HOST: ${DB_HOST:-postgres}
@@ -175,6 +181,10 @@ volumes:
   mysql_data:
     driver: local
   redis_data:
+    driver: local
+  vendor:
+    driver: local
+  node_modules:
     driver: local
 
 networks:

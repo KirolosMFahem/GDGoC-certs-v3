@@ -32,8 +32,9 @@ RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
     bcmath
 
 # Install Redis extension
-RUN pecl install redis \
-    && docker-php-ext-enable redis
+RUN pecl channel-update pecl.php.net && \
+    pecl install redis && \
+    docker-php-ext-enable redis
 
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
@@ -89,8 +90,9 @@ RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
     bcmath
 
 # Install Redis extension
-RUN pecl install redis \
-    && docker-php-ext-enable redis
+RUN pecl channel-update pecl.php.net && \
+    pecl install redis && \
+    docker-php-ext-enable redis
 
 # Configure PHP for production
 RUN mv "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini"
@@ -113,7 +115,7 @@ COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
 # Set permissions
-RUN chown -R appuser:appuser /var/www/html/storage /var/www/html/bootstrap/cache
+RUN chown -R appuser:appuser /var/www/html/storage /var/www/html/bootstrap/cache /var/www/html/vendor
 
 # Switch to non-root user
 USER appuser
