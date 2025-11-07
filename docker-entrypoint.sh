@@ -10,6 +10,10 @@ fi
 
 cd /var/www/html || exit 1
 
+# Ensure writable directories exist with correct permissions
+mkdir -p storage/framework/cache storage/framework/sessions storage/framework/views storage/logs bootstrap/cache
+chmod -R 775 storage bootstrap/cache 2>/dev/null || true
+
 if [ ! -f ./vendor/autoload.php ]; then
   err "vendor/autoload.php not found — running composer install..."
   composer install --no-dev --optimize-autoloader --no-interaction --no-scripts || {

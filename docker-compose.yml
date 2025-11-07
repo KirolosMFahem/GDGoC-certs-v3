@@ -66,7 +66,6 @@ services:
     working_dir: /var/www/html
     volumes:
       - .:/var/www/html
-      - ./storage:/var/www/html/storage
       - vendor:/var/www/html/vendor
       - node_modules:/var/www/html/node_modules
     environment:
@@ -106,7 +105,6 @@ services:
     restart: unless-stopped
     volumes:
       - .:/var/www/html
-      - ./storage:/var/www/html/storage
       - vendor:/var/www/html/vendor
       - node_modules:/var/www/html/node_modules
     environment:
@@ -142,7 +140,6 @@ services:
     restart: unless-stopped
     volumes:
       - .:/var/www/html
-      - ./storage:/var/www/html/storage
       - vendor:/var/www/html/vendor
       - node_modules:/var/www/html/node_modules
     environment:

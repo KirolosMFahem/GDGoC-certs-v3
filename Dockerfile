@@ -114,8 +114,9 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
-# Set permissions
-RUN chown -R appuser:appuser /var/www/html/storage /var/www/html/bootstrap/cache /var/www/html/vendor
+# Set permissions for writable directories
+RUN chown -R appuser:appuser /var/www/html/storage /var/www/html/bootstrap/cache /var/www/html/vendor && \
+    chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
 # Switch to non-root user
 USER appuser
