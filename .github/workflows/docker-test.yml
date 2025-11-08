@@ -144,6 +144,13 @@ jobs:
           done
           echo "Redis is ready"
 
+      - name: Set Laravel directory permissions
+        run: |
+          echo "Setting permissions for Laravel storage and cache directories..."
+          docker compose exec -T php mkdir -p storage/logs bootstrap/cache
+          docker compose exec -T php chmod -R 777 storage bootstrap/cache
+          echo "Permissions set successfully"
+
       - name: Run database migrations (with retries)
         run: |
           echo "Running database migrations..."
