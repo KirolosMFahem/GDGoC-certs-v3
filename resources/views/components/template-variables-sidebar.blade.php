@@ -19,7 +19,7 @@
                 draggable="true"
                 @dragstart="
                     $event.dataTransfer.effectAllowed = 'copy';
-                    $event.dataTransfer.setData('text/plain', '{{ $' + variable.name + ' }}');
+                    $event.dataTransfer.setData('text/plain', '@{{ $' + variable.name + ' }}');
                     $event.dataTransfer.setData('application/x-certificate-variable', variable.name);
                 "
                 class="p-3 bg-gray-50 rounded-md border border-gray-200 cursor-move hover:bg-indigo-50 hover:border-indigo-300 transition-colors shadow-sm group"
