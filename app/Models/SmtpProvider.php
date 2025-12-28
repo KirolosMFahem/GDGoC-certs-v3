@@ -24,6 +24,10 @@ class SmtpProvider extends Model
         'password',
     ];
 
+    protected $casts = [
+        'is_global' => 'boolean',
+    ];
+
     /**
      * Get the password attribute, decrypting it.
      */
