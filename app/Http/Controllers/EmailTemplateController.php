@@ -19,6 +19,25 @@ class EmailTemplateController extends Controller
             'body' => ['required', 'string'],
         ]);
 
+        $replacements = [
+            'Recipient_Name' => 'John Doe',
+            'Event_Title' => 'Certificate Award Ceremony',
+            'Org_Name' => 'GDG on Campus',
+            'state' => 'New York',
+            'event_type' => 'Workshop',
+            'issue_date' => now()->toFormattedDateString(),
+            'issuer_name' => 'Jane Smith',
+            'unique_id' => '123e4567-e89b-12d3-a456-426614174000',
+        ];
+
+        $subject = $validated['subject'];
+        $body = $validated['body'];
+
+        foreach ($replacements as $key => $value) {
+            // Replace {{ $key }} and {{ $key }} and {{$key}}
+            $subject = str_replace(['{{ $'.$key.' }}', '{{$'.$key.'}}', '{{ '.$key.' }}', '{{'.$key.'}}'], $value, $subject);
+            $body = str_replace(['{{ $'.$key.' }}', '{{$'.$key.'}}', '{{ '.$key.' }}', '{{'.$key.'}}'], $value, $body);
+        }
         $subject = $previewService->applyReplacements($validated['subject']);
         $body = $previewService->applyReplacements($validated['body']);
 
@@ -35,8 +54,12 @@ class EmailTemplateController extends Controller
     {
         Gate::authorize('viewAny', EmailTemplate::class);
 
-        $userTemplates = auth()->user()->emailTemplates;
-        $globalTemplates = EmailTemplate::where('is_global', true)->get();
+        $userTemplates = auth()->user()->emailTemplates()
+            ->select('id', 'user_id', 'name', 'subject', 'created_at', 'original_template_id')
+            ->get();
+        $globalTemplates = EmailTemplate::where('is_global', true)
+            ->select('id', 'name', 'subject', 'created_at')
+            ->get();
 
         return view('dashboard.templates.email.index', compact('userTemplates', 'globalTemplates'));
     }
