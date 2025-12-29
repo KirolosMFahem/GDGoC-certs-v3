@@ -29,6 +29,7 @@
                             handleDrop(event) {
                                 event.preventDefault();
                                 const variableName = event.dataTransfer.getData('application/x-certificate-variable');
+                                const variableType = event.dataTransfer.getData('application/x-certificate-variable-type');
                                 if (!variableName) return;
 
                                 const svgContainer = this.$refs.visualPreview;
@@ -46,17 +47,25 @@
 
                                     const svgP = pt.matrixTransform(svgEl.getScreenCTM().inverse());
 
-                                    const newText = `<text x=\x22${Math.round(svgP.x)}\x22 y=\x22${Math.round(svgP.y)}\x22 font-family=\x22Arial\x22 font-size=\x2224\x22 fill=\x22black\x22>@{{ $${variableName} }}</text>`;
+                                    let newElement = '';
+                                    if (variableType === 'image') {
+                                        // Insert image element
+                                        // Use a default size for the placeholder, e.g., 150x150
+                                        newElement = `<image x=\x22${Math.round(svgP.x)}\x22 y=\x22${Math.round(svgP.y)}\x22 width=\x22150\x22 height=\x22150\x22 href=\x22@{{ $${variableName} }}\x22 />`;
+                                    } else {
+                                        // Insert text element
+                                        newElement = `<text x=\x22${Math.round(svgP.x)}\x22 y=\x22${Math.round(svgP.y)}\x22 font-family=\x22Arial\x22 font-size=\x2224\x22 fill=\x22black\x22>@{{ $${variableName} }}</text>`;
+                                    }
 
                                     const closeTagIndex = this.svgContent.lastIndexOf('</svg>');
                                     if (closeTagIndex !== -1) {
-                                        this.svgContent = this.svgContent.substring(0, closeTagIndex) + '\n    ' + newText + '\n' + this.svgContent.substring(closeTagIndex);
+                                        this.svgContent = this.svgContent.substring(0, closeTagIndex) + '\n    ' + newElement + '\n' + this.svgContent.substring(closeTagIndex);
                                     } else {
                                         alert('Could not find closing </svg> tag.');
                                     }
                                 } catch (e) {
                                     console.error(e);
-                                    alert('Error placing variable. Ensure the SVG is valid.');
+                                    alert('Error placing element. Ensure the SVG is valid.');
                                 }
                             }
                          }"
