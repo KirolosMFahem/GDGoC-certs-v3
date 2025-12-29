@@ -32,12 +32,20 @@ class SecurityHeaders
         // Content Security Policy
         // Allows scripts and styles from self and necessary external sources (fonts.bunny.net)
         // 'unsafe-inline' and 'unsafe-eval' are kept for Alpine.js compatibility for now
-        $csp = "default-src 'self'; ".
-               "script-src 'self' 'unsafe-inline' 'unsafe-eval'; ".
-               "style-src 'self' 'unsafe-inline' https://fonts.bunny.net; ".
-               "font-src 'self' https://fonts.bunny.net; ".
-               "img-src 'self' data: https://www.gravatar.com; ".
-               "connect-src 'self';";
+
+        // Dynamically allow Vite dev server origin based on the current request host
+        // This ensures HMR and asset loading works whether accessing via localhost or network IP
+        $host = $request->getHost();
+        $vitePort = 5173;
+        $viteUrl = "http://{$host}:{$vitePort}";
+        $viteWs = "ws://{$host}:{$vitePort}";
+
+        $csp = "default-src 'self'; " .
+               "script-src 'self' 'unsafe-inline' 'unsafe-eval' {$viteUrl}; " .
+               "style-src 'self' 'unsafe-inline' https://fonts.bunny.net {$viteUrl}; " .
+               "font-src 'self' https://fonts.bunny.net; " .
+               "img-src 'self' data: https://www.gravatar.com; " .
+               "connect-src 'self' {$viteUrl} {$viteWs};";
 
         $response->headers->set('Content-Security-Policy', $csp);
         // Permissions Policy: Disable sensitive features
