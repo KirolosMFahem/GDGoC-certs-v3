@@ -33,19 +33,37 @@ class SecurityHeaders
         // Allows scripts and styles from self and necessary external sources (fonts.bunny.net)
         // 'unsafe-inline' and 'unsafe-eval' are kept for Alpine.js compatibility for now
 
-        // Dynamically allow Vite dev server origin based on the current request host
-        // This ensures HMR and asset loading works whether accessing via localhost or network IP
-        $host = $request->getHost();
-        $vitePort = 5173;
-        $viteUrl = "http://{$host}:{$vitePort}";
-        $viteWs = "ws://{$host}:{$vitePort}";
-
         $csp = "default-src 'self'; " .
-               "script-src 'self' 'unsafe-inline' 'unsafe-eval' {$viteUrl}; " .
-               "style-src 'self' 'unsafe-inline' https://fonts.bunny.net {$viteUrl}; " .
+               "script-src 'self' 'unsafe-inline' 'unsafe-eval'; " .
+               "style-src 'self' 'unsafe-inline' https://fonts.bunny.net; " .
                "font-src 'self' https://fonts.bunny.net; " .
                "img-src 'self' data: https://www.gravatar.com; " .
-               "connect-src 'self' {$viteUrl} {$viteWs};";
+               "connect-src 'self';";
+
+        // Dynamically allow Vite dev server origin only in debug mode
+        if (config('app.debug')) {
+            $host = $request->getHost();
+            $scheme = $request->getScheme();
+            $vitePort = 5173;
+
+            // Handle HTTP/HTTPS for Vite
+            $viteUrl = ($scheme === 'https' ? 'https' : 'http') . "://{$host}:{$vitePort}";
+            $viteWs = ($scheme === 'https' ? 'wss' : 'ws') . "://{$host}:{$vitePort}";
+
+            // We also need to allow localhost explicitly if we are accessing via IP
+            // because Vite might be serving hot file from localhost:5173 inside the loopback
+            // but actually Laravel-Vite plugin usually renders the script tag with the accessible URL.
+            // Let's stick to the requested host + localhost for safety in dev.
+
+            $devOrigins = "{$viteUrl} http://localhost:{$vitePort} ws://localhost:{$vitePort}";
+
+            $csp = "default-src 'self'; " .
+                   "script-src 'self' 'unsafe-inline' 'unsafe-eval' {$devOrigins}; " .
+                   "style-src 'self' 'unsafe-inline' https://fonts.bunny.net {$devOrigins}; " .
+                   "font-src 'self' https://fonts.bunny.net; " .
+                   "img-src 'self' data: https://www.gravatar.com; " .
+                   "connect-src 'self' {$devOrigins} {$viteWs};";
+        }
 
         $response->headers->set('Content-Security-Policy', $csp);
         // Permissions Policy: Disable sensitive features

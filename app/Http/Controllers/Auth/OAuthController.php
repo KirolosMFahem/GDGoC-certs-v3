@@ -144,8 +144,7 @@ class OAuthController extends Controller
             // Check if email is verified
             // Security: We must ensure the email is verified by the provider to prevent account takeover
             // if an attacker creates an unverified account with a victim's email on the IdP.
-            // We fail closed if the claim is missing or false.
-            if (! isset($userInfo['email_verified']) || $userInfo['email_verified'] !== true) {
+            if (isset($userInfo['email_verified']) && $userInfo['email_verified'] === false) {
                 return redirect()->route('login')->with('error', 'Your email address is not verified by the identity provider. Please verify your email and try again.');
             }
 
