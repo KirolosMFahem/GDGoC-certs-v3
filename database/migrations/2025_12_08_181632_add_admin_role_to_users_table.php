@@ -6,23 +6,6 @@ use Illuminate\Support\Facades\DB;
 return new class extends Migration
 {
     /**
-     * Check if a constraint exists on the users table (MySQL-specific).
-     */
-    private function constraintExists(string $constraintName): bool
-    {
-        $result = DB::select(
-            "SELECT CONSTRAINT_NAME 
-             FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS 
-             WHERE TABLE_SCHEMA = DATABASE() 
-             AND TABLE_NAME = 'users' 
-             AND CONSTRAINT_NAME = ?",
-            [$constraintName]
-        );
-        
-        return !empty($result);
-    }
-
-    /**
      * Run the migrations.
      */
     public function up(): void
@@ -51,22 +34,12 @@ return new class extends Migration
             DB::statement('INSERT INTO users_new SELECT * FROM users');
             DB::statement('DROP TABLE users');
             DB::statement('ALTER TABLE users_new RENAME TO users');
-        } elseif ($driver === 'pgsql') {
-            // PostgreSQL: Update constraint
+        } else {
+            // PostgreSQL and MySQL: Update constraint
             DB::statement('ALTER TABLE users DROP CONSTRAINT IF EXISTS role_valid');
             DB::statement('ALTER TABLE users ALTER COLUMN role TYPE VARCHAR(255)');
             DB::statement("ALTER TABLE users ALTER COLUMN role SET DEFAULT 'leader'");
             DB::statement('ALTER TABLE users ALTER COLUMN role SET NOT NULL');
-            DB::statement("ALTER TABLE users ADD CONSTRAINT role_valid CHECK (role IN ('leader', 'admin', 'superadmin'))");
-        } else {
-            // MySQL/MariaDB: Update constraint
-            // MySQL doesn't support DROP CONSTRAINT IF EXISTS, so we need to check first
-            if ($this->constraintExists('role_valid')) {
-                DB::statement('ALTER TABLE users DROP CONSTRAINT role_valid');
-            }
-            
-            // MySQL uses MODIFY COLUMN syntax
-            DB::statement("ALTER TABLE users MODIFY COLUMN role VARCHAR(255) NOT NULL DEFAULT 'leader'");
             DB::statement("ALTER TABLE users ADD CONSTRAINT role_valid CHECK (role IN ('leader', 'admin', 'superadmin'))");
         }
     }
@@ -100,22 +73,12 @@ return new class extends Migration
             DB::statement('INSERT INTO users_new SELECT * FROM users');
             DB::statement('DROP TABLE users');
             DB::statement('ALTER TABLE users_new RENAME TO users');
-        } elseif ($driver === 'pgsql') {
-            // PostgreSQL: Revert constraint
+        } else {
+            // PostgreSQL and MySQL: Revert constraint
             DB::statement('ALTER TABLE users DROP CONSTRAINT IF EXISTS role_valid');
             DB::statement('ALTER TABLE users ALTER COLUMN role TYPE VARCHAR(255)');
             DB::statement("ALTER TABLE users ALTER COLUMN role SET DEFAULT 'leader'");
             DB::statement('ALTER TABLE users ALTER COLUMN role SET NOT NULL');
-            DB::statement("ALTER TABLE users ADD CONSTRAINT role_valid CHECK (role IN ('leader', 'superadmin'))");
-        } else {
-            // MySQL/MariaDB: Revert constraint
-            // MySQL doesn't support DROP CONSTRAINT IF EXISTS, so we need to check first
-            if ($this->constraintExists('role_valid')) {
-                DB::statement('ALTER TABLE users DROP CONSTRAINT role_valid');
-            }
-            
-            // MySQL uses MODIFY COLUMN syntax
-            DB::statement("ALTER TABLE users MODIFY COLUMN role VARCHAR(255) NOT NULL DEFAULT 'leader'");
             DB::statement("ALTER TABLE users ADD CONSTRAINT role_valid CHECK (role IN ('leader', 'superadmin'))");
         }
     }
