@@ -6,6 +6,23 @@ use Illuminate\Support\Facades\DB;
 return new class extends Migration
 {
     /**
+     * Check if a constraint exists on the users table (MySQL-specific).
+     */
+    private function constraintExists(string $constraintName): bool
+    {
+        $result = DB::select(
+            "SELECT CONSTRAINT_NAME 
+             FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS 
+             WHERE TABLE_SCHEMA = DATABASE() 
+             AND TABLE_NAME = 'users' 
+             AND CONSTRAINT_NAME = ?",
+            [$constraintName]
+        );
+        
+        return !empty($result);
+    }
+
+    /**
      * Run the migrations.
      */
     public function up(): void
@@ -44,10 +61,7 @@ return new class extends Migration
         } else {
             // MySQL/MariaDB: Update constraint
             // MySQL doesn't support DROP CONSTRAINT IF EXISTS, so we need to check first
-            $constraintExists = DB::select("SELECT CONSTRAINT_NAME FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS 
-                WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'users' AND CONSTRAINT_NAME = 'role_valid'");
-            
-            if (!empty($constraintExists)) {
+            if ($this->constraintExists('role_valid')) {
                 DB::statement('ALTER TABLE users DROP CONSTRAINT role_valid');
             }
             
@@ -96,10 +110,7 @@ return new class extends Migration
         } else {
             // MySQL/MariaDB: Revert constraint
             // MySQL doesn't support DROP CONSTRAINT IF EXISTS, so we need to check first
-            $constraintExists = DB::select("SELECT CONSTRAINT_NAME FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS 
-                WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'users' AND CONSTRAINT_NAME = 'role_valid'");
-            
-            if (!empty($constraintExists)) {
+            if ($this->constraintExists('role_valid')) {
                 DB::statement('ALTER TABLE users DROP CONSTRAINT role_valid');
             }
             
