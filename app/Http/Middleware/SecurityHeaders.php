@@ -70,7 +70,7 @@ class SecurityHeaders
                "connect-src {$connectSrc}; " .
                "frame-src {$frameSrc};";
 
-        $response->headers->set('Content-Security-Policy', $csp);
+        // $response->headers->set('Content-Security-Policy', $csp);
         // Permissions Policy: Disable sensitive features
         $response->headers->set('Permissions-Policy', 'geolocation=(), microphone=(), camera=()');
 
