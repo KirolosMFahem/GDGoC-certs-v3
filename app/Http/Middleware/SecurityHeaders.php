@@ -31,11 +31,12 @@ class SecurityHeaders
 
         // CSP Defaults
         $defaultSrc = "'self'";
-        $scriptSrc = "'self' 'unsafe-inline' 'unsafe-eval'";
-        $styleSrc = "'self' 'unsafe-inline' https://fonts.bunny.net";
-        $fontSrc = "'self' https://fonts.bunny.net";
-        $imgSrc = "'self' data: https://www.gravatar.com";
+        $scriptSrc = "'self' 'unsafe-inline' 'unsafe-eval' blob:";
+        $styleSrc = "'self' 'unsafe-inline' https://fonts.bunny.net blob:";
+        $fontSrc = "'self' https://fonts.bunny.net data:";
+        $imgSrc = "'self' data: blob: https:";
         $connectSrc = "'self'";
+        $frameSrc = "'self' blob:";
 
         // Allow Vite dev server in local environment
         if (app()->environment('local')) {
@@ -55,6 +56,7 @@ class SecurityHeaders
             $styleSrc .= " " . $vitePolicy;
             $connectSrc .= " " . $vitePolicy;
             $imgSrc .= " " . $vitePolicy; // Vite often serves assets from its own server
+            $fontSrc .= " " . $vitePolicy;
         }
 
         // Content Security Policy
@@ -65,7 +67,8 @@ class SecurityHeaders
                "style-src {$styleSrc}; " .
                "font-src {$fontSrc}; " .
                "img-src {$imgSrc}; " .
-               "connect-src {$connectSrc};";
+               "connect-src {$connectSrc}; " .
+               "frame-src {$frameSrc};";
 
         $response->headers->set('Content-Security-Policy', $csp);
         // Permissions Policy: Disable sensitive features
