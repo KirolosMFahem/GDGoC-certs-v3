@@ -26,12 +26,11 @@
                             <x-input-error :messages="$errors->get('subject')" class="mt-2" />
                         </div>
 
-                        <!-- Body -->
+                        <!-- Body (GrapesJS Editor) -->
                         <div class="mb-4">
-                            <x-input-label for="body" :value="__('Email Body (Blade Template)')" />
-                            <textarea id="body" name="body" rows="15" class="block mt-1 w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm font-mono text-sm" required>{{ old('body') }}</textarea>
+                            <x-input-label for="body" :value="__('Email Body')" />
+                            <x-email-editor name="body" :value="old('body')" />
                             <x-input-error :messages="$errors->get('body')" class="mt-2" />
-                            <p class="text-sm text-gray-600 mt-1">Enter your email body using Blade template syntax</p>
                         </div>
 
                         <div class="flex items-center justify-end mt-4">
