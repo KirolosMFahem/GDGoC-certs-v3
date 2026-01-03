@@ -29,48 +29,30 @@ class SecurityHeaders
         // Enforce HTTPS (HSTS)
         $response->headers->set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
 
-        // CSP Defaults
-        $defaultSrc = "'self'";
-        $scriptSrc = "'self' 'unsafe-inline' 'unsafe-eval' blob:";
-        $styleSrc = "'self' 'unsafe-inline' https://fonts.bunny.net blob:";
-        $fontSrc = "'self' https://fonts.bunny.net data:";
-        $imgSrc = "'self' data: blob: https:";
+        // Content Security Policy
+        $csp = "default-src 'self'; " .
+               "font-src 'self' https://fonts.bunny.net; " .
+               "img-src 'self' data: https://www.gravatar.com; ";
+
+        // Base allowances (Alpine.js needs unsafe-inline/unsafe-eval)
+        $scriptSrc = "'self' 'unsafe-inline' 'unsafe-eval'";
+        $styleSrc = "'self' 'unsafe-inline' https://fonts.bunny.net";
         $connectSrc = "'self'";
-        $frameSrc = "'self' blob:";
 
-        // Allow Vite dev server in local environment
-        if (app()->environment('local')) {
-            // Vite default port is 5173.
-            // We allow localhost and the current request host (for Docker/network access)
-            $host = $request->getHost();
-            $viteUrls = [
-                "http://localhost:5173",
-                "ws://localhost:5173",
-                "http://{$host}:5173",
-                "ws://{$host}:5173"
-            ];
-
-            $vitePolicy = implode(' ', array_unique($viteUrls));
-
-            $scriptSrc .= " " . $vitePolicy;
-            $styleSrc .= " " . $vitePolicy;
-            $connectSrc .= " " . $vitePolicy;
-            $imgSrc .= " " . $vitePolicy; // Vite often serves assets from its own server
-            $fontSrc .= " " . $vitePolicy;
+        // Allow Vite dev server and other dev tools in local environment
+        if (app()->isLocal()) {
+            // Permissive policy for development: allow any http/https/ws source
+            // This prevents blocking regardless of what port or host Vite uses
+            $scriptSrc .= " http: https: 'unsafe-inline' 'unsafe-eval'";
+            $styleSrc .= " http: https: 'unsafe-inline'";
+            $connectSrc .= " http: https: ws: wss:";
         }
 
-        // Content Security Policy
-        // Allows scripts and styles from self and necessary external sources (fonts.bunny.net)
-        // 'unsafe-inline' and 'unsafe-eval' are kept for Alpine.js compatibility for now
-        $csp = "default-src {$defaultSrc}; " .
-               "script-src {$scriptSrc}; " .
-               "style-src {$styleSrc}; " .
-               "font-src {$fontSrc}; " .
-               "img-src {$imgSrc}; " .
-               "connect-src {$connectSrc}; " .
-               "frame-src {$frameSrc};";
+        $csp .= "script-src {$scriptSrc}; " .
+                "style-src {$styleSrc}; " .
+                "connect-src {$connectSrc};";
 
-        // $response->headers->set('Content-Security-Policy', $csp);
+        $response->headers->set('Content-Security-Policy', $csp);
         // Permissions Policy: Disable sensitive features
         $response->headers->set('Permissions-Policy', 'geolocation=(), microphone=(), camera=()');
 
