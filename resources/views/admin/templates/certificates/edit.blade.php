@@ -16,11 +16,12 @@
                             svgContent: '',
 
                             init() {
-                                // Initial sync
+                                // Initial sync from hidden input if present, or wait for component
                                 this.svgContent = document.getElementById('content').value;
                             },
 
                             syncFromTextarea() {
+                                // When switching to Visual tab, update svgContent from Monaco/Hidden Input
                                 this.svgContent = document.getElementById('content').value;
                             },
 
@@ -60,8 +61,16 @@
                                     const closeTagIndex = this.svgContent.lastIndexOf('</svg>');
                                     if (closeTagIndex !== -1) {
                                         this.svgContent = this.svgContent.substring(0, closeTagIndex) + '\n    ' + newElement + '\n' + this.svgContent.substring(closeTagIndex);
-                                        // Update textarea explicitly
-                                        document.getElementById('content').value = this.svgContent;
+
+                                        // Update hidden input explicitly
+                                        const input = document.getElementById('content');
+                                        input.value = this.svgContent;
+
+                                        // Update Monaco Editor if instance exists
+                                        const container = document.getElementById('content_monaco_container');
+                                        if (container && container._monaco) {
+                                            container._monaco.setValue(this.svgContent);
+                                        }
                                     } else {
                                         alert('Could not find closing </svg> tag.');
                                     }
@@ -116,15 +125,9 @@
                                         </div>
                                     </div>
 
-                                    <!-- Code Editor -->
-                                    <div x-show="tab === 'code' || type !== 'svg'">
-                                        <textarea id="content"
-                                                  name="content"
-                                                  rows="15"
-                                                  class="block mt-1 w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm font-mono text-sm"
-                                                  required
-                                                  @input="svgContent = $event.target.value"
-                                        >{{ old('content', $certificateTemplate->content) }}</textarea>
+                                    <!-- Code Editor (Monaco) -->
+                                    <div x-show="tab === 'code' || type !== 'svg'" @input="svgContent = $event.target.value">
+                                        <x-monaco-editor name="content" :value="old('content', $certificateTemplate->content)" language="html" height="600px" />
                                     </div>
 
                                     <!-- Visual Editor (SVG Only) -->
