@@ -40,8 +40,8 @@ window.initMonacoEditor = function(containerId, inputId, language = 'html', init
     // Update hidden input on change
     editor.onDidChangeModelContent(() => {
         input.value = editor.getValue();
-        // Trigger input event for Alpine binding
-        input.dispatchEvent(new Event('input'));
+        // Trigger input event for Alpine binding, ensuring it bubbles up
+        input.dispatchEvent(new Event('input', { bubbles: true }));
     });
 
     // Allow external updates (e.g., from drag-and-drop visual editor)

@@ -23,6 +23,8 @@ class TemplatePreviewService
             // Image placeholders (URLs must be valid for PDF generation, but for preview we can use placeholders)
             'Org_Logo' => 'https://via.placeholder.com/150x150.png?text=Logo',
             'Issuer_Signature' => 'https://via.placeholder.com/200x50.png?text=Signature',
+            // Superadmin only
+            'password_reset_url' => 'https://certs.gdg-oncampus.dev/password/reset/token123',
         ];
     }
 

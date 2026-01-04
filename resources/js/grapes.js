@@ -2,7 +2,7 @@ import grapesjs from 'grapesjs';
 import 'grapesjs/dist/css/grapes.min.css';
 import newsletterPlugin from 'grapesjs-preset-newsletter';
 
-window.initGrapesEditor = function (containerSelector, inputSelector, initialContent) {
+window.initGrapesEditor = function (containerSelector, inputSelector, initialContent, customVariables = []) {
     const editor = grapesjs.init({
         container: containerSelector,
         height: '700px',
@@ -36,7 +36,9 @@ window.initGrapesEditor = function (containerSelector, inputSelector, initialCon
 
     // Add Custom Variable Blocks
     const blockManager = editor.BlockManager;
-    const variables = [
+
+    // Default variables if none provided
+    const variables = customVariables.length > 0 ? customVariables : [
         { name: 'Recipient_Name', label: 'Recipient Name' },
         { name: 'Event_Title', label: 'Event Title' },
         { name: 'Org_Name', label: 'Org Name' },
