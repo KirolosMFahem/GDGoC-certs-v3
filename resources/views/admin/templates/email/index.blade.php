@@ -59,8 +59,8 @@
                                             {{ $template->created_at->format('M d, Y') }}
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                            <a href="{{ route('admin.templates.email.edit', $template) }}" class="text-indigo-600 hover:text-indigo-900 mr-3">Edit</a>
-                                            <form action="{{ route('admin.templates.email.destroy', $template) }}" method="POST" class="inline">
+                                            <a href="{{ route('admin.templates.email.edit', ['email_template' => $template->id]) }}" class="text-indigo-600 hover:text-indigo-900 mr-3">Edit</a>
+                                            <form action="{{ route('admin.templates.email.destroy', ['email_template' => $template->id]) }}" method="POST" class="inline">
                                                 @csrf
                                                 @method('DELETE')
                                                 <button type="submit" class="text-red-600 hover:text-red-900" onclick="return confirm('Are you sure you want to delete this template?')">Delete</button>

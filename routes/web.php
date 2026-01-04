@@ -104,7 +104,9 @@ Route::domain(config('domains.admin', 'sudo.certs-admin.certs.gdg-oncampus.dev')
                     Route::resource('templates/certificates', AdminCertificateTemplateController::class)->names('templates.certificates');
 
                     Route::post('/templates/email/preview', [AdminEmailTemplateController::class, 'preview'])->name('templates.email.preview');
-                    Route::resource('templates/email', AdminEmailTemplateController::class)->names('templates.email');
+                    Route::resource('templates/email', AdminEmailTemplateController::class)
+                        ->names('templates.email')
+                        ->parameters(['email' => 'email_template']);
 
                     // OIDC Settings
                     Route::get('/settings/oidc', [AdminOidcController::class, 'edit'])->name('oidc.edit');
@@ -168,7 +170,9 @@ Route::middleware(['auth', 'org_name'])->prefix('dashboard')->name('dashboard.')
     Route::post('/templates/email/preview', [EmailTemplateController::class, 'preview'])->name('templates.email.preview');
     Route::post('/templates/email/{emailTemplate}/clone', [EmailTemplateController::class, 'clone'])->name('templates.email.clone');
     Route::post('/templates/email/{emailTemplate}/reset', [EmailTemplateController::class, 'reset'])->name('templates.email.reset');
-    Route::resource('templates/email', EmailTemplateController::class)->names('templates.email');
+            Route::resource('templates/email', EmailTemplateController::class)
+                ->names('templates.email')
+                ->parameters(['email' => 'email_template']);
 
     // Certificates
     Route::get('/certificates/create', [CertificateController::class, 'create'])->name('certificates.create');
